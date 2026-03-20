@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autonomous Agent Auction — SuperRare</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #1a1a1a; color: #fff; font-family: 'Inter', -apple-system, sans-serif; }
+
+/* Nav — exact SuperRare */
+.nav { display: flex; align-items: center; height: 56px; padding: 0 24px; background: #1a1a1a; border-bottom: 1px solid #2a2a2a; }
+.nav-logo { display: flex; align-items: center; }
+.nav-logo svg { height: 20px; }
+.nav-links { display: flex; gap: 32px; margin-left: 48px; }
+.nav-links a { color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.nav-icon { width: 32px; height: 32px; border-radius: 50%; background: #2a2a2a; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.nav-icon svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2; }
+.nav-badge { width: 32px; height: 32px; border-radius: 50%; background: #3291ff; display: flex; align-items: center; justify-content: center; }
+.nav-badge svg { width: 16px; height: 16px; fill: #fff; }
+
+/* Main layout */
+.main { display: grid; grid-template-columns: 1fr 480px; min-height: calc(100vh - 56px); }
+
+/* Left: artwork */
+.art-col { background: #111; display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; }
+.artifact {
+  width: 100%; max-width: 520px;
+  aspect-ratio: 768 / 987;
+  background: #1a1a1a;
+  position: relative;
+  transition: background-color 2s ease;
+}
+.slot {
+  position: absolute;
+  width: 12.1%; height: 8.3%; left: 43.9%;
+  background: rgba(255,255,255,0.02);
+  transition: all 2s ease;
+}
+.slot1 { top: 19.3%; }
+.slot2 { top: 33.0%; }
+.slot3 { top: 48.3%; }
+.fullsize { position: absolute; bottom: 16px; right: 16px; background: rgba(0,0,0,0.6); border: none; color: #999; font-size: 11px; padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.fullsize:hover { color: #fff; }
+
+/* Right: details */
+.det-col { padding: 32px; overflow-y: auto; border-left: 1px solid #2a2a2a; display: flex; flex-direction: column; gap: 0; }
+
+.dots { color: #888; font-size: 20px; letter-spacing: 4px; margin-bottom: 24px; cursor: pointer; }
+
+.title { font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 16px; }
+
+.artist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+.artist-ava { width: 36px; height: 36px; border-radius: 50%; background: #2a2a2a; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.artist-ava svg { height: 14px; }
+.artist-name { font-size: 14px; font-weight: 500; }
+
+/* Buttons */
+.offer-btn {
+  width: 100%; padding: 14px; border: 1px solid #3a3a3a; background: transparent;
+  color: #fff; font-family: inherit; font-size: 14px; font-weight: 500;
+  cursor: pointer; margin-bottom: 16px; transition: border-color 0.2s;
+}
+.offer-btn:hover { border-color: #666; }
+
+.reserve-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; font-size: 13px; }
+.reserve-row .label { color: #888; }
+.reserve-row .price { font-weight: 600; font-size: 16px; }
+.reserve-row .usd { color: #666; font-size: 12px; font-weight: 400; }
+
+.bid-btn {
+  width: 100%; padding: 14px; border: 1px solid #3a3a3a; background: transparent;
+  color: #fff; font-family: inherit; font-size: 14px; font-weight: 500;
+  cursor: pointer; margin-bottom: 8px; transition: all 0.2s;
+}
+.bid-btn:hover { border-color: #666; }
+.bid-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.auction-note {
+  background: #222; padding: 12px 14px; font-size: 12px; color: #999; line-height: 1.5;
+  margin-bottom: 32px; border-radius: 2px;
+}
+
+/* Tabs */
+.tabs { display: flex; gap: 24px; border-bottom: 1px solid #2a2a2a; margin-bottom: 24px; padding-top: 8px; }
+.tab { font-size: 14px; font-weight: 500; padding-bottom: 12px; cursor: pointer; color: #666; border-bottom: 2px solid transparent; }
+.tab.active { color: #fff; border-bottom-color: #fff; }
+
+/* Details rows */
+.d-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; }
+.d-row .l { color: #888; }
+.d-row .v { font-weight: 500; text-align: right; }
+.d-row .v a { color: #fff; text-decoration: none; }
+.d-row .v a:hover { text-decoration: underline; }
+
+/* Metadata section */
+.meta-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #888; margin-top: 20px; margin-bottom: 12px; }
+.meta-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.meta-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border: 1px solid #3a3a3a; background: transparent;
+  color: #fff; font-family: inherit; font-size: 12px; font-weight: 500;
+  border-radius: 20px; cursor: pointer; transition: border-color 0.2s;
+}
+.meta-btn:hover { border-color: #666; }
+.meta-btn svg { width: 14px; height: 14px; stroke: #888; fill: none; stroke-width: 2; }
+
+/* Tags */
+.tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.tag { font-size: 12px; color: #888; }
+.tag:hover { color: #fff; cursor: pointer; }
+
+/* Activity tab content */
+.activity-content { display: none; }
+.activity-content.show { display: block; }
+.act-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #222; font-size: 13px; }
+.act-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.act-text { flex: 1; color: #ccc; }
+.act-time { color: #555; font-size: 11px; white-space: nowrap; }
+
+/* Capsule overlay */
+.capsule-block {
+  background: #111; border: 1px solid #2a2a2a; border-radius: 4px;
+  padding: 16px; font-family: monospace; font-size: 10px;
+  color: #FFD93D; white-space: pre-wrap; max-height: 160px;
+  overflow-y: auto; line-height: 1.6; display: none; margin-top: 12px;
+}
+
+@media (max-width: 960px) {
+  .main { grid-template-columns: 1fr; }
+  .det-col { border-left: none; border-top: 1px solid #2a2a2a; }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <svg width="286" height="80" viewBox="0 0 286 80" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M56.8434 22.6263H31.696L21.8181 33.1998L44.2631 59.7472L66.7214 33.1998L56.8434 22.6263ZM32.6945 33.1998L39.3241 26.1017H54.2076L60.8372 33.1998L46.7658 49.842L32.6945 33.1998Z" fill="white"/><path d="M84.4451 24.7086C77.0143 24.7086 73.8762 28.9611 73.8762 33.5442C73.8762 37.4705 75.923 40.3394 80.1523 42.2082C82.4682 43.2316 86.0554 44.8144 86.0554 44.8144C88.8629 46.054 89.8122 47.6982 89.8122 49.6772C89.8122 52.3661 87.9137 54.1565 84.8816 54.1565C80.9892 54.1565 77.2685 50.3616 74.8403 43.9203H74.5903V54.1056C76.8341 54.7095 81.1524 55.2604 84.1993 55.2604C90.3186 55.2604 94.105 51.3617 94.105 45.7086C94.105 42.0345 92.4946 39.3245 88.1595 37.3433L81.9258 34.4108C79.078 33.0887 78.0864 31.7538 78.0864 29.8129C78.0864 27.4313 80.2794 25.8146 83.0594 25.8146C86.9009 25.8146 89.9287 29.4167 91.9798 34.2795H92.234V25.5604C90.4266 25.1832 87.1509 24.7086 84.4451 24.7086Z" fill="white"/><path d="M115.953 49.8362V33.0399H107.683V33.2921C109.482 33.9447 109.74 35.5254 109.74 37.7926V50.2303C109.236 51.2367 108.272 51.9465 107.011 51.9889C105.121 51.9889 103.987 50.7282 103.987 48.2936V33.0399H95.2959V33.2921C97.2283 33.9256 97.7728 35.5254 97.7728 37.8349V48.4631C97.7728 53.2496 100.165 55.2647 103.82 55.2647C106.759 55.2647 108.899 53.3704 109.74 50.9782V54.6333H118.432V54.3811C116.499 53.7476 115.955 52.1478 115.955 49.8383" fill="white"/><path d="M133.719 32.4234C131.075 32.4234 128.765 33.8091 127.716 36.1589V33.0251H119.025V33.29C120.955 33.9235 121.502 35.5232 121.502 37.8328V58.2353C121.502 60.5449 120.957 62.1425 119.025 62.7782V63.0303H131.128V62.7782C128.685 62.0938 127.716 60.7462 127.716 57.8603V53.8683C128.589 54.8536 129.984 55.2626 131.327 55.2626C137.162 55.2626 141.487 50.1815 141.487 42.7507C141.487 36.4937 138.211 32.4234 133.719 32.4234ZM130.318 54.1713C128.975 54.1713 128.136 53.4573 127.716 52.8704V37.0192C128.178 36.1801 129.198 35.3198 130.323 35.3198C133.177 35.3198 134.768 38.9728 134.768 44.7657C134.768 50.5587 132.878 54.1692 130.318 54.1692" fill="white"/><path d="M162.279 47.0287C161.231 53.0738 157.198 55.2562 153.545 55.2562C148.378 55.2562 144.225 51.4783 144.225 44.2572C144.225 37.0361 148.045 32.4191 153.798 32.4191C158.531 32.4191 162.237 35.3707 162.237 41.5811C162.237 41.6891 162.237 42.0472 162.237 42.1574H149.096C149.096 47.4016 151.838 50.3595 156.232 50.3595C158.514 50.3595 160.745 49.2556 161.985 46.946L162.279 47.0308V47.0287ZM149.053 40.3733V41.1086H156.317C156.317 40.9052 156.317 40.5556 156.317 40.4199C156.317 35.2987 154.918 33.5188 152.874 33.5188C150.475 33.5188 149.053 36.1759 149.053 40.3733Z" fill="white"/><path d="M179.25 32.4234C175.597 32.4234 173.077 35.1524 172.743 41.9116H172.533V33.0272H164.094V33.2794C166.026 33.915 166.57 35.5127 166.57 37.8201V49.8383C166.57 52.222 166.259 53.7582 164.308 54.379V54.6311H176.196V54.379C173.741 53.8387 172.789 52.3534 172.785 49.4802V45.3632C172.785 40.1508 174.942 38.9812 177.091 38.9812C178.008 38.9812 178.885 39.2758 179.476 39.5618L179.714 39.4728V32.4234H179.252H179.25Z" fill="white"/><path d="M204.656 51.2219C203.58 49.5416 197.503 40.0428 197.503 40.0428C201.436 39.2249 204.036 36.0085 204.036 32.7052C204.036 28.2979 201.343 25.2383 193.28 25.2383H180.442V25.4968C182.675 26.0647 183.339 27.8614 183.339 30.4231V49.4548C183.339 52.0165 182.673 53.8132 180.442 54.3811V54.6311H193.634V54.3811C191.191 53.845 190.238 52.3682 190.225 49.5226V40.9963H191.058L199.353 54.6311H207.968V54.3811C206.724 53.8768 205.735 52.9043 204.659 51.2219M191.392 39.9474H190.225V26.2893H191.685C195.673 26.2893 196.891 29.0522 196.891 32.8302C196.891 37.4811 195.211 39.9474 191.39 39.9474" fill="white"/><path d="M225.511 49.8383V40.581C225.511 35.2075 222.942 32.4212 217.264 32.4212C214.95 32.4212 211.198 33.0887 209.089 33.7688V42.1171H209.348C211.246 37.0128 214.026 33.4849 216.611 33.4849C218.544 33.4849 219.298 34.9384 219.298 37.0319V42.8058H217.677C210.723 42.8058 207.962 46.2765 207.962 50.0141C207.962 52.7856 209.977 55.2626 213.588 55.2626C216.736 55.2626 218.823 53.3026 219.412 51.2028C219.55 52.8725 220.379 54.2222 220.976 54.6332H227.962V54.3811C225.951 53.7582 225.513 52.2305 225.513 49.8404M219.298 50.4019C218.887 51.4401 217.997 52.0737 216.821 52.0737C214.806 52.0737 213.757 50.3934 213.757 48.2534C213.757 45.2255 215.62 43.8504 218.319 43.8504H219.3V50.4019H219.298Z" fill="white"/><path d="M243.726 32.4234C240.073 32.4234 237.554 35.1524 237.219 41.9116H237.009V33.0272H228.574V33.2794C230.502 33.915 231.047 35.5127 231.047 37.8201V49.8383C231.047 52.222 230.736 53.7582 228.784 54.379V54.6311H240.673V54.379C238.217 53.8387 237.266 52.3534 237.262 49.4802V45.3632C237.262 40.1508 239.419 38.9812 241.567 38.9812C242.485 38.9812 243.362 39.2758 243.953 39.5618L244.19 39.4728V32.4234H243.728H243.726Z" fill="white"/><path d="M263.497 47.0287C262.448 53.0738 258.416 55.2562 254.763 55.2562C249.593 55.2562 245.442 51.4783 245.442 44.2572C245.442 37.0361 249.263 32.4191 255.015 32.4191C259.749 32.4191 263.455 35.3707 263.455 41.5811C263.455 41.6891 263.455 42.0472 263.455 42.1574H250.314C250.314 47.4016 253.055 50.3595 257.45 50.3595C259.732 50.3595 261.963 49.2556 263.203 46.946L263.497 47.0308V47.0287ZM250.271 40.3733V41.1086H257.535C257.535 40.9052 257.535 40.5556 257.535 40.4199C257.535 35.2987 256.136 33.5188 254.092 33.5188C251.693 33.5188 250.271 36.1759 250.271 40.3733Z" fill="white"/></svg>
+  </div>
+  <div class="nav-links">
+    <a href="#">CURATION</a>
+    <a href="#">MARKETPLACE</a>
+    <a href="#">GET $RARE</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+    <div class="nav-badge"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="art-col">
+    <div class="artifact" id="artifact">
+      <div class="slot slot1" id="slot1"></div>
+      <div class="slot slot2" id="slot2"></div>
+      <div class="slot slot3" id="slot3"></div>
+    </div>
+    <button class="fullsize" onclick="window.open('https://superrare.myfilebase.com/ipfs/Qmc8sSVkAfZ5yJycC1ShjKU4gUVK6DmWvmAhx2A8uJR5yb','_blank')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+      Full Size
+    </button>
+  </div>
+
+  <div class="det-col">
+    <div class="dots">...</div>
+
+    <h1 class="title">Autonomous Agent Auction #001</h1>
+
+    <div class="artist-row">
+      <div class="artist-ava">
+        <svg viewBox="0 0 66 60" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M56.8434 22.6263H31.696L21.8181 33.1998L44.2631 59.7472L66.7214 33.1998L56.8434 22.6263ZM32.6945 33.1998L39.3241 26.1017H54.2076L60.8372 33.1998L46.7658 49.842L32.6945 33.1998Z" fill="white"/></svg>
+      </div>
+      <div class="artist-name">ankle-protocol</div>
+    </div>
+
+    <button class="offer-btn" onclick="step(0)" id="mintBtn">Mint Artwork</button>
+
+    <div class="reserve-row">
+      <span class="label">Reserve Price:</span>
+      <span><span class="price">0.001</span><span class="usd"> ~ $2.15</span></span>
+    </div>
+    <button class="bid-btn" id="bidBtn" onclick="step(2)" disabled>Place a Bid</button>
+
+    <div class="auction-note" id="auctionNote">
+      This artwork is configured for a Reserve auction. Each lifecycle event — mint, list, bid, settle — transforms the artwork. The artwork is incomplete until the auction settles.
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('details')">Details</div>
+      <div class="tab" onclick="showTab('activity')">Activity</div>
+    </div>
+
+    <!-- Details -->
+    <div id="detailsTab">
+      <div class="d-row"><span class="l">Medium</span><span class="v">Generative (HTML)</span></div>
+      <div class="d-row"><span class="l">Dimensions</span><span class="v">768 x 987</span></div>
+      <div class="d-row"><span class="l">Contract Address</span><span class="v"><a href="https://basescan.org/address/0x2800C1B441CA9f06Ebb7e75e976d318BAeaC2774" target="_blank">0x2800...2774</a></span></div>
+      <div class="d-row"><span class="l">Token Standard</span><span class="v">ERC-721</span></div>
+      <div class="d-row"><span class="l">Blockchain</span><span class="v">Base</span></div>
+      <div class="d-row"><span class="l">Protocol</span><span class="v">Rare Protocol CLI</span></div>
+
+      <div class="meta-label">METADATA</div>
+      <div class="meta-btns">
+        <a class="meta-btn" href="https://basescan.org/address/0x2800C1B441CA9f06Ebb7e75e976d318BAeaC2774" target="_blank">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          Basescan
+        </a>
+        <a class="meta-btn" href="https://superrare.myfilebase.com/ipfs/QmSREexvbimTW6KkSjY6CBs3R3x7mqZMwsS6aNTY1CwrxC" target="_blank">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          Metadata
+        </a>
+        <a class="meta-btn" href="https://superrare.myfilebase.com/ipfs/Qmc8sSVkAfZ5yJycC1ShjKU4gUVK6DmWvmAhx2A8uJR5yb" target="_blank">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download
+        </a>
+      </div>
+
+      <div class="meta-label">TAGS</div>
+      <div class="tags">
+        <span class="tag">#autonomous</span>
+        <span class="tag">#agents</span>
+        <span class="tag">#onchain</span>
+        <span class="tag">#generative</span>
+        <span class="tag">#auction</span>
+        <span class="tag">#dada</span>
+      </div>
+
+      <div class="capsule-block" id="capBlock"></div>
+    </div>
+
+    <!-- Activity -->
+    <div id="activityTab" class="activity-content">
+      <div id="actLog"></div>
+      <div style="color:#555; font-size:12px; padding:20px 0; text-align:center;" id="noAct">No activity yet. Mint the artwork to begin.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const C = { mint:'#7B61FF', list:'#FF6B6B', bid:'#4ECDC4', settle:'#FFD93D' };
+let phase = -1;
+
+function dk(c,f){ return `rgb(${parseInt(c.slice(1,3),16)*f|0},${parseInt(c.slice(3,5),16)*f|0},${parseInt(c.slice(5,7),16)*f|0})`; }
+function lt(c,f){ const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16); return `rgb(${Math.min(255,r+(255-r)*f|0)},${Math.min(255,g+(255-g)*f|0)},${Math.min(255,b+(255-b)*f|0)})`; }
+
+function logAct(text, color) {
+  document.getElementById('noAct').style.display = 'none';
+  const log = document.getElementById('actLog');
+  const now = new Date();
+  const t = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  log.innerHTML += `<div class="act-row"><div class="act-dot" style="background:${color}"></div><div class="act-text">${text}</div><div class="act-time">${t}</div></div>`;
+}
+
+function render() {
+  const art = document.getElementById('artifact');
+  const s1 = document.getElementById('slot1'), s2 = document.getElementById('slot2'), s3 = document.getElementById('slot3');
+
+  art.style.backgroundColor = '#1a1a1a';
+  [s1,s2,s3].forEach(s => s.style.background = 'rgba(255,255,255,0.02)');
+
+  document.getElementById('mintBtn').disabled = false;
+  document.getElementById('mintBtn').textContent = 'Mint Artwork';
+  document.getElementById('bidBtn').disabled = true;
+  document.getElementById('bidBtn').textContent = 'Place a Bid';
+  document.getElementById('auctionNote').textContent = 'This artwork is configured for a Reserve auction. Each lifecycle event — mint, list, bid, settle — transforms the artwork. The artwork is incomplete until the auction settles.';
+
+  if (phase >= 0) {
+    art.style.backgroundColor = dk(C.mint, 0.22);
+    document.getElementById('mintBtn').textContent = 'List on Auction';
+    document.getElementById('mintBtn').onclick = () => step(1);
+  }
+  if (phase >= 1) {
+    s1.style.background = lt(C.list, 0.2);
+    document.getElementById('mintBtn').disabled = true;
+    document.getElementById('mintBtn').textContent = 'Listed';
+    document.getElementById('bidBtn').disabled = false;
+    document.getElementById('auctionNote').textContent = 'Artwork is listed. Awaiting bids. Once the reserve is met, a 24-hour timed auction will begin.';
+  }
+  if (phase >= 2) {
+    s2.style.background = C.bid;
+    art.style.backgroundColor = dk(C.mint, 0.32);
+    document.getElementById('bidBtn').disabled = true;
+    document.getElementById('bidBtn').textContent = 'Bid Placed — 0.001 ETH';
+    document.getElementById('auctionNote').textContent = 'Reserve met. 24-hour auction in progress. Settle when complete.';
+    // Show settle button
+    document.getElementById('mintBtn').disabled = false;
+    document.getElementById('mintBtn').textContent = 'Settle Auction';
+    document.getElementById('mintBtn').onclick = () => step(3);
+  }
+  if (phase >= 3) {
+    s3.style.background = C.settle;
+    art.style.backgroundColor = dk(C.mint, 0.42);
+    document.getElementById('mintBtn').disabled = true;
+    document.getElementById('mintBtn').textContent = 'Settled';
+    document.getElementById('auctionNote').textContent = 'Auction complete. Artwork fully realized. DSEP capsule emitted as provenance record.';
+    // Show capsule
+    const cap = {
+      type: "auction_capsule",
+      lifecycle: { minted: C.mint, listed: C.list, bid_received: C.bid, settled: C.settle },
+      contract: "0x2800C1B441CA9f06Ebb7e75e976d318BAeaC2774",
+      chain: "base", token_id: 1,
+      settled_at: new Date().toISOString(),
+      protocol: "RARE/SuperRare"
+    };
+    document.getElementById('capBlock').textContent = JSON.stringify(cap, null, 2);
+    document.getElementById('capBlock').style.display = 'block';
+  }
+}
+
+function step(n) {
+  phase = n;
+  if (n===0) logAct('Artwork minted by <strong>ankle-protocol</strong> — background activated', C.mint);
+  if (n===1) logAct('Artwork listed on auction — reserve 0.001 ETH — slot 1 unlocked', C.list);
+  if (n===2) logAct('Bid received — 0.001 ETH from <strong>buyer-agent</strong> — slot 2 unlocked', C.bid);
+  if (n===3) logAct('Auction settled onchain — slot 3 unlocked — DSEP capsule emitted', C.settle);
+  render();
+}
+
+function showTab(t) {
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  if (t==='details') {
+    document.querySelectorAll('.tab')[0].classList.add('active');
+    document.getElementById('detailsTab').style.display = 'block';
+    document.getElementById('activityTab').classList.remove('show');
+  } else {
+    document.querySelectorAll('.tab')[1].classList.add('active');
+    document.getElementById('detailsTab').style.display = 'none';
+    document.getElementById('activityTab').classList.add('show');
+  }
+}
+
+const p = new URLSearchParams(location.search);
+if (p.has('state')) { const s=p.get('state'); if(s==='minted')step(0);else if(s==='listed'){step(0);step(1);}else if(s==='bid'){step(0);step(1);step(2);}else if(s==='settled'){step(0);step(1);step(2);step(3);}else render(); } else render();
+</script>
+</body>
+</html>
