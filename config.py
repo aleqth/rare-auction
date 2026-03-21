@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 CHAIN = os.getenv("RARE_CHAIN", "base")
-RARE_BIN = os.getenv("RARE_BIN", "/usr/local/bin/rare")
+RARE_BIN = os.getenv("RARE_BIN", "rare")
 PRIVATE_KEY = os.getenv("PRIVATE_KEY", "")
 SERVER_PORT = int(os.getenv("SERVER_PORT", "8899"))
 AGENT_LOOP_INTERVAL = int(os.getenv("AGENT_LOOP_INTERVAL", "180"))
