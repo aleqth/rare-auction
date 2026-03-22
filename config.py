@@ -9,8 +9,8 @@ PRIVATE_KEY = os.getenv("PRIVATE_KEY", "")
 SERVER_PORT = int(os.getenv("SERVER_PORT", "8899"))
 AGENT_LOOP_INTERVAL = int(os.getenv("AGENT_LOOP_INTERVAL", "180"))
 AUCTION_DURATION = int(os.getenv("AUCTION_DURATION", "3600"))
-MIN_PRICE = float(os.getenv("MIN_PRICE", "0.001"))
-MAX_PRICE = float(os.getenv("MAX_PRICE", "0.01"))
+MIN_PRICE = float(os.getenv("MIN_PRICE", "0.0001"))
+MAX_PRICE = float(os.getenv("MAX_PRICE", "0.001"))
 STATE_FILE = os.path.expanduser("~/.rare/ankle_state.json")
 
 EMOTIONS = ["happy", "sad", "anger", "love", "lust"]
@@ -58,3 +58,6 @@ CONTRACTS = {
 }
 
 SHARED_WALLET = "0x005e84c1e700ea929CE826aC41d39302980C772E"
+COLLECTOR_WALLET_KEY = os.getenv("COLLECTOR_WALLET_KEY", "0xd80d938a5de4fa72531156840df88c50fbacd64fef609b7fda6833a0a3b15499")
+COLLECTOR_WALLET_ADDR = "0xE933298399020d31EC234026c856C1a47EE4bAfc"
+MAIN_WALLET_KEY = os.getenv("PRIVATE_KEY", "")

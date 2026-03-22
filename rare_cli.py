@@ -56,8 +56,14 @@ def auction_create(contract: str, token_id: int, starting_price: float,
     ], timeout=120)
 
 
+def configure_wallet(private_key: str, chain: str = CHAIN) -> dict:
+    return exec(["configure", "--chain", chain, "--private-key", private_key])
+
+
 def auction_bid(contract: str, token_id: int, amount: float,
-                chain: str = CHAIN) -> dict:
+                chain: str = CHAIN, bidder_key: str = None) -> dict:
+    if bidder_key:
+        configure_wallet(bidder_key, chain)
     return exec([
         "auction", "bid",
         "--contract", contract,

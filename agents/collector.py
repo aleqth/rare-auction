@@ -2,7 +2,7 @@ import random
 from datetime import datetime
 from agents.base import Agent
 import rare_cli
-from config import CHAIN, EMOTIONS, PALETTES
+from config import CHAIN, EMOTIONS, PALETTES, COLLECTOR_WALLET_KEY, MAIN_WALLET_KEY
 
 
 class CollectorAgent(Agent):
@@ -44,8 +44,10 @@ class CollectorAgent(Agent):
             if not auction:
                 continue
 
-            bid_amount = round(auction["starting_price"] * random.uniform(1.0, 1.5), 4)
-            result = rare_cli.auction_bid(auction["contract"], auction["token_id"], bid_amount, CHAIN)
+            bid_amount = round(max(auction["starting_price"], 0.0001) * random.uniform(1.0, 1.1), 5)
+            result = rare_cli.auction_bid(auction["contract"], auction["token_id"], bid_amount, CHAIN, bidder_key=COLLECTOR_WALLET_KEY)
+            # Switch back to main wallet after bidding
+            rare_cli.configure_wallet(MAIN_WALLET_KEY, CHAIN)
 
             if result["success"]:
                 auction.setdefault("bids", []).append({
