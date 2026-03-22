@@ -2,7 +2,7 @@ import random
 from datetime import datetime
 from agents.base import Agent
 import rare_cli
-from config import CHAIN, EMOTION_PRICE_MULTIPLIER, MIN_PRICE, MAX_PRICE, AUCTION_DURATION
+from config import CHAIN, EMOTION_PRICE_MULTIPLIER, MIN_PRICE, MAX_PRICE, AUCTION_DURATION, COLLECTOR_WALLET_ADDR, MAIN_WALLET_KEY
 
 
 class AuctioneerAgent(Agent):
@@ -63,6 +63,31 @@ class AuctioneerAgent(Agent):
             result = rare_cli.auction_settle(contract, token_id, CHAIN)
             auction["state"] = "SETTLED"
             auction["settled_at"] = datetime.now().isoformat()
+
+            # Recycle: top up collector wallet from settlement proceeds
+            try:
+                from web3 import Web3
+                w3 = Web3(Web3.HTTPProvider("https://mainnet.base.org"))
+                main_acct = w3.eth.account.from_key(MAIN_WALLET_KEY)
+                main_bal = w3.eth.get_balance(main_acct.address)
+                topup = min(w3.to_wei(0.0005, "ether"), main_bal // 3)
+                if topup > w3.to_wei(0.0001, "ether"):
+                    nonce = w3.eth.get_transaction_count(main_acct.address)
+                    block = w3.eth.get_block("latest")
+                    tx = {
+                        "nonce": nonce, "to": COLLECTOR_WALLET_ADDR,
+                        "value": topup, "gas": 21000,
+                        "maxFeePerGas": block["baseFeePerGas"] * 3,
+                        "maxPriorityFeePerGas": w3.to_wei(0.001, "gwei"),
+                        "chainId": 8453, "type": 2,
+                    }
+                    signed = main_acct.sign_transaction(tx)
+                    w3.eth.send_raw_transaction(signed.raw_transaction)
+                    self.log(state, "recycled", f"topped up collector with {w3.from_wei(topup, 'ether')} ETH")
+                    # Restore main wallet in rare config
+                    rare_cli.configure_wallet(MAIN_WALLET_KEY, CHAIN)
+            except Exception as e:
+                self.log(state, "recycle_failed", str(e)[:100])
 
             capsule = {
                 "type": "auction_capsule",

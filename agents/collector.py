@@ -44,7 +44,7 @@ class CollectorAgent(Agent):
             if not auction:
                 continue
 
-            bid_amount = round(max(auction["starting_price"], 0.0001) * random.uniform(1.0, 1.1), 5)
+            bid_amount = round(auction["starting_price"] * random.uniform(1.1, 1.5), 5)
             result = rare_cli.auction_bid(auction["contract"], auction["token_id"], bid_amount, CHAIN, bidder_key=COLLECTOR_WALLET_KEY)
             # Switch back to main wallet after bidding
             rare_cli.configure_wallet(MAIN_WALLET_KEY, CHAIN)

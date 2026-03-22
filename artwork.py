@@ -5,10 +5,36 @@ import tempfile
 from config import EMOTIONS, EMOTION_COLORS, PALETTES
 
 
+_recent_combos = []
+
 def pick_traits() -> dict:
-    emotion = random.choice(EMOTIONS)
-    palette_name = random.choice(list(PALETTES.keys()))
-    palette_hex = PALETTES[palette_name]["hex"]
+    global _recent_combos
+    palette_names = list(PALETTES.keys())
+
+    # Try up to 20 times to get a unique emotion+palette combo
+    for _ in range(20):
+        emotion = random.choice(EMOTIONS)
+        palette_name = random.choice(palette_names)
+        combo = (emotion, palette_name)
+        if combo not in _recent_combos:
+            break
+
+    # Track last 30 combos to avoid repeats
+    _recent_combos.append(combo)
+    if len(_recent_combos) > 30:
+        _recent_combos = _recent_combos[-30:]
+
+    # Add hue jitter so even same palette looks different
+    base_hex = PALETTES[palette_name]["hex"]
+    r = int(base_hex[1:3], 16)
+    g = int(base_hex[3:5], 16)
+    b = int(base_hex[5:7], 16)
+    jitter = random.randint(-25, 25)
+    r = max(0, min(255, r + jitter))
+    g = max(0, min(255, g + random.randint(-15, 15)))
+    b = max(0, min(255, b + random.randint(-15, 15)))
+    palette_hex = f"#{r:02x}{g:02x}{b:02x}"
+
     seed = random.randint(0, 2**32)
     return {
         "emotion": emotion,
