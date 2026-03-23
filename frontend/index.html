@@ -130,6 +130,7 @@ body { background: #1a1a1a; color: #fff; font-family: 'Inter', -apple-system, sa
       <div class="slot slot3" id="slot3"></div>
     </div>
     <div class="slot-labels" id="slotLabels">
+      <div class="slot-label"><div class="slot-swatch" id="sw0"></div><span>BG</span><span class="slot-by" id="by0"></span></div>
       <div class="slot-label"><div class="slot-swatch" id="sw1"></div><span>1</span><span class="slot-by" id="by1"></span></div>
       <div class="slot-label"><div class="slot-swatch" id="sw2"></div><span>2</span><span class="slot-by" id="by2"></span></div>
       <div class="slot-label"><div class="slot-swatch" id="sw3"></div><span>3</span><span class="slot-by" id="by3"></span></div>
@@ -274,8 +275,26 @@ function render(state) {
   const latest = active[0] || auctions[auctions.length - 1];
   const art = document.getElementById('artifact');
   if (latest) {
-    art.style.backgroundColor = latest.bg_color || '#141414';
     const slots = latest.slots || {};
+
+    // Slot 0 = background
+    const bgColor = slots['0'] || latest.bg_color || '#141414';
+    art.style.backgroundColor = bgColor;
+    const sw0 = document.getElementById('sw0');
+    const by0 = document.getElementById('by0');
+    if (slots['0']) {
+      sw0.style.backgroundColor = slots['0'];
+      sw0.className = 'slot-swatch set';
+      const hist = latest.bid_history || [];
+      const lastBg = [...hist].reverse().find(b => b.slot === 0);
+      by0.textContent = lastBg ? lastBg.bidder_name : '';
+    } else {
+      sw0.style.backgroundColor = bgColor;
+      sw0.className = 'slot-swatch';
+      by0.textContent = '';
+    }
+
+    // Slots 1-3
     for (let i = 1; i <= 3; i++) {
       const el = document.getElementById('slot' + i);
       const sw = document.getElementById('sw' + i);
@@ -285,7 +304,6 @@ function render(state) {
         el.style.backgroundColor = color;
         sw.style.backgroundColor = color;
         sw.className = 'slot-swatch set';
-        // Find who set it
         const hist = latest.bid_history || [];
         const last = [...hist].reverse().find(b => b.slot === i);
         by.textContent = last ? last.bidder_name : '';
@@ -367,6 +385,7 @@ async function poll() {
 let demoMode = false;
 let demoTimer = null;
 const BIDDERS = [
+  { id: 'nyx',    name: 'Nyx',    prefs: ['#1A0A2E','#0A1628','#12000A','#0D0D2A','#1C0A1C'], slot: 0 },
   { id: 'mira',   name: 'Mira',   prefs: ['#FF6B6B','#FF3B30','#E74C3C','#C0392B'], slot: 1 },
   { id: 'sol',    name: 'Sol',    prefs: ['#4ECDC4','#00C98D','#1ABC9C','#2ECC71'], slot: 2 },
   { id: 'vesper', name: 'Vesper', prefs: ['#FFD93D','#FF8C42','#F39C12','#E67E22'], slot: 3 },
@@ -408,7 +427,7 @@ function runDemo() {
   const demoState = {
     cycle_count: Math.floor(Math.random()*50)+1,
     agents: { '◈': { minted_tokens: [tokenId] } },
-    auctions: [{ token_id: tokenId, state: 'RUNNING', bg_color: bg, slots: {'1':null,'2':null,'3':null}, bids: [], bid_history: [], starting_price: 0.0001, created_at: auctionStart, duration: auctionDuration }],
+    auctions: [{ token_id: tokenId, state: 'RUNNING', bg_color: bg, slots: {'0':null,'1':null,'2':null,'3':null}, bids: [], bid_history: [], starting_price: 0.0001, created_at: auctionStart, duration: auctionDuration }],
     capsules: [],
     events: [],
   };
@@ -451,7 +470,7 @@ function runDemo() {
 
     // Pick a random bidder — they might bid on ANY slot, not just their preferred one
     const bidder = BIDDERS[Math.floor(Math.random()*BIDDERS.length)];
-    const slot = Math.random() > 0.6 ? Math.ceil(Math.random()*3) : bidder.slot; // 40% chance random slot
+    const slot = Math.random() > 0.7 ? Math.floor(Math.random()*4) : bidder.slot; // 30% chance random slot (0=bg, 1-3=slots)
     const color = jitter(bidder.prefs[Math.floor(Math.random()*bidder.prefs.length)]);
     price = Math.round(price * (1.05 + Math.random()*0.15) * 100000) / 100000;
 
@@ -459,7 +478,8 @@ function runDemo() {
     demoState.auctions[0].slots[String(slot)] = color;
     demoState.auctions[0].bids.push(bid);
     demoState.auctions[0].bid_history.push(bid);
-    demoState.events.push({ ts: new Date().toISOString(), agent: `⟡ ${bidder.name}`, action: 'bid', detail: `${bidder.name} set slot ${slot} to ${color} (${price} ETH)` });
+    const slotLabel = slot === 0 ? 'background' : `slot ${slot}`;
+    demoState.events.push({ ts: new Date().toISOString(), agent: `⟡ ${bidder.name}`, action: 'bid', detail: `${bidder.name} set ${slotLabel} to ${color} (${price} ETH)` });
 
     lastEvtCount = 0;
     render(demoState);

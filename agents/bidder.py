@@ -17,7 +17,7 @@ class BidderAgent(Agent):
         self.slot_pref = profile.get("slot_pref")
 
     def choose_color_and_slot(self) -> tuple:
-        slot = self.slot_pref or random.randint(1, 3)
+        slot = self.slot_pref if self.slot_pref is not None else random.randint(0, 3)
         base_color = random.choice(self.color_prefs)
         # Add jitter so each bid looks unique
         r = int(base_color[1:3], 16)
@@ -74,7 +74,8 @@ class BidderAgent(Agent):
                 auction.setdefault("bids", []).append(bid_record)
                 auction.setdefault("bid_history", []).append(bid_record)
 
-                self.log(state, "bid", f"{self.bidder_name} set slot {slot} to {color} ({bid_amount} ETH)")
+                slot_label = "background" if slot == 0 else f"slot {slot}"
+                self.log(state, "bid", f"{self.bidder_name} set {slot_label} to {color} ({bid_amount} ETH)")
             else:
                 self.log(state, "bid_failed", result["error"][:150])
 

@@ -15,6 +15,7 @@ STATE_FILE = os.path.expanduser("~/.rare/ankle_state.json")
 CANVAS_BG_COLORS = ["#0D0D0D", "#1A0A2E", "#0A1628", "#1C1C1C", "#0A0A14", "#12000A", "#001A0A"]
 
 BIDDER_PROFILES = [
+    {"id": "nyx",    "name": "Nyx",    "color_prefs": ["#1A0A2E", "#0A1628", "#12000A", "#0D0D2A", "#1C0A1C"], "slot_pref": 0},
     {"id": "mira",   "name": "Mira",   "color_prefs": ["#FF6B6B", "#FF3B30", "#E74C3C", "#C0392B"], "slot_pref": 1},
     {"id": "sol",    "name": "Sol",    "color_prefs": ["#4ECDC4", "#00C98D", "#1ABC9C", "#2ECC71"], "slot_pref": 2},
     {"id": "vesper", "name": "Vesper", "color_prefs": ["#FFD93D", "#FF8C42", "#F39C12", "#E67E22"], "slot_pref": 3},
