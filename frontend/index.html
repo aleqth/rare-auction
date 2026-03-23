@@ -53,7 +53,8 @@ body { background: #1a1a1a; color: #fff; font-family: 'Inter', -apple-system, sa
 .det-col { overflow: hidden; border-left: 1px solid #252525; display: flex; flex-direction: column; }
 
 .det-top { padding: 20px 20px 0; flex-shrink: 0; }
-.title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.title { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+.artist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .sub { font-size: 11px; color: #555; margin-bottom: 12px; line-height: 1.4; }
 
 .stats { display: flex; gap: 6px; padding: 0 20px 12px; flex-shrink: 0; }
@@ -129,13 +130,43 @@ body { background: #1a1a1a; color: #fff; font-family: 'Inter', -apple-system, sa
   <div class="det-col">
     <div class="det-top">
       <div class="title" id="pageTitle">Autonomous Agent Auction</div>
-      <div class="sub">Each bid is a color. Each slot is shaped by bidders. The artwork is the provenance.</div>
+
+      <div class="artist-row">
+        <div style="width:28px;height:28px;border-radius:50%;background:#222;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 66 60" fill="none" style="height:11px"><path fill-rule="evenodd" clip-rule="evenodd" d="M56.8434 22.6263H31.696L21.8181 33.1998L44.2631 59.7472L66.7214 33.1998L56.8434 22.6263ZM32.6945 33.1998L39.3241 26.1017H54.2076L60.8372 33.1998L46.7658 49.842L32.6945 33.1998Z" fill="white"/></svg>
+        </div>
+        <span style="font-size:13px;font-weight:500">ankle-protocol</span>
+      </div>
     </div>
 
-    <div class="stats">
-      <div class="stat"><span class="n" id="nMinted">—</span><span class="l">Minted</span></div>
-      <div class="stat"><span class="n" id="nBids">—</span><span class="l">Bids</span></div>
-      <div class="stat"><span class="n" id="nSettled">—</span><span class="l">Settled</span></div>
+    <!-- SuperRare-style auction section -->
+    <div style="padding:0 20px 12px; flex-shrink:0;">
+      <div id="timerBox" style="background:#222;border-radius:4px;padding:10px 14px;margin-bottom:10px;display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:#888">Auction ends in</span>
+          <span id="timerVal" style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">--:--:--</span>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:12px">
+        <span style="color:#888">Reserve Price:</span>
+        <span><span style="font-weight:600;font-size:15px" id="priceVal">0.0001</span><span style="color:#555;font-size:11px"> ETH</span></span>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-size:12px" id="highBidRow">
+        <span style="color:#888">Current Bid:</span>
+        <span><span style="font-weight:600;color:#4ECDC4" id="highBidVal">—</span></span>
+      </div>
+
+      <div id="auctionNote" style="background:#222;padding:10px 12px;font-size:11px;color:#666;line-height:1.5;border-radius:2px;margin-bottom:10px">
+        This artwork is configured for a Reserve auction. Bidders choose colors for each slot. The artwork evolves with every bid until the auction settles.
+      </div>
+
+      <div class="stats" style="padding:0;margin-bottom:0">
+        <div class="stat"><span class="n" id="nBids">—</span><span class="l">Bids</span></div>
+        <div class="stat"><span class="n" id="nMinted">—</span><span class="l">Minted</span></div>
+        <div class="stat"><span class="n" id="nSettled">—</span><span class="l">Settled</span></div>
+      </div>
     </div>
 
     <div class="tabs">
@@ -145,11 +176,12 @@ body { background: #1a1a1a; color: #fff; font-family: 'Inter', -apple-system, sa
 
     <div class="tab-body">
       <div id="detailsContent">
+        <div class="d-row"><span class="l">Medium</span><span class="v">Generative (HTML)</span></div>
         <div class="d-row"><span class="l">Canvas</span><span class="v">768 x 987</span></div>
         <div class="d-row"><span class="l">Contract</span><span class="v"><a href="https://basescan.org/address/0x2800C1B441CA9f06Ebb7e75e976d318BAeaC2774" target="_blank">0x2800...2774</a></span></div>
-        <div class="d-row"><span class="l">Chain</span><span class="v">Base</span></div>
+        <div class="d-row"><span class="l">Token Standard</span><span class="v">ERC-721</span></div>
+        <div class="d-row"><span class="l">Blockchain</span><span class="v">Base</span></div>
         <div class="d-row"><span class="l">Protocol</span><span class="v">Rare Protocol CLI</span></div>
-        <div class="d-row"><span class="l">Auction</span><span class="v" id="auctionStatus">—</span></div>
         <div class="links">
           <a class="link-btn" href="https://basescan.org/address/0x2800C1B441CA9f06Ebb7e75e976d318BAeaC2774" target="_blank">Basescan</a>
           <a class="link-btn" href="https://github.com/aleqth/rare-auction" target="_blank">Repo</a>
@@ -185,7 +217,39 @@ function render(state) {
   document.getElementById('nMinted').textContent = minted || '—';
   document.getElementById('nBids').textContent = totalBids || '—';
   document.getElementById('nSettled').textContent = settled.length || '—';
-  document.getElementById('auctionStatus').textContent = active.length ? 'Live' : settled.length ? 'Settled' : '—';
+  // Timer
+  if (active.length && active[0].created_at && active[0].duration) {
+    const created = new Date(active[0].created_at).getTime();
+    const dur = active[0].duration * 1000;
+    const remaining = Math.max(0, (created + dur) - Date.now());
+    document.getElementById('timerBox').style.display = 'block';
+    if (remaining > 0) {
+      const h = Math.floor(remaining/3600000);
+      const m = Math.floor((remaining%3600000)/60000);
+      const s = Math.floor((remaining%60000)/1000);
+      document.getElementById('timerVal').textContent = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    } else {
+      document.getElementById('timerVal').textContent = 'Settling...';
+    }
+  } else if (settled.length && !active.length) {
+    document.getElementById('timerBox').style.display = 'block';
+    document.getElementById('timerVal').textContent = 'Settled';
+  } else {
+    document.getElementById('timerBox').style.display = 'none';
+  }
+
+  // High bid
+  const latestAuction = active[0] || auctions[auctions.length - 1];
+  if (latestAuction) {
+    const bids = latestAuction.bids || [];
+    if (bids.length) {
+      const high = Math.max(...bids.map(b => parseFloat(b.amount || 0)));
+      document.getElementById('highBidVal').textContent = high.toFixed(5) + ' ETH';
+    }
+    if (latestAuction.starting_price) {
+      document.getElementById('priceVal').textContent = latestAuction.starting_price;
+    }
+  }
 
   // Artwork
   const latest = active[0] || auctions[auctions.length - 1];
@@ -319,104 +383,75 @@ function runDemo() {
   lastEvtCount = 0;
   const bg = DEMO_BGS[Math.floor(Math.random()*DEMO_BGS.length)];
   const tokenId = Math.floor(Math.random()*900)+100;
-  const events = [];
-  const slots = { '1': null, '2': null, '3': null };
-  const bidHistory = [];
-  let t = Date.now();
-  let bidCount = 0;
-  let price = 0.0001;
+  const auctionDuration = 45; // 45 seconds for demo
+  const auctionStart = new Date(Date.now() + 3000).toISOString(); // starts after mint+list
 
-  // Phase 1: Mint
-  events.push({ ts: new Date(t).toISOString(), agent: '◈ artist', action: 'minted', detail: `Canvas #${tokenId} — background ${bg}` });
-  t += 2000;
-
-  // Phase 2: List
-  events.push({ ts: new Date(t).toISOString(), agent: '◎ auctioneer', action: 'listed', detail: `Canvas #${tokenId} at ${price} ETH` });
-  t += 3000;
-
-  // Phase 3: Bids — staggered
-  const shuffled = [...BIDDERS].sort(() => Math.random() - 0.5);
-  for (const bidder of shuffled) {
-    const color = jitter(bidder.prefs[Math.floor(Math.random()*bidder.prefs.length)]);
-    price = Math.round(price * (1.1 + Math.random()*0.3) * 100000) / 100000;
-    slots[String(bidder.slot)] = color;
-    bidHistory.push({ bidder_id: bidder.id, bidder_name: bidder.name, slot: bidder.slot, color, amount: price, ts: new Date(t).toISOString() });
-    events.push({ ts: new Date(t).toISOString(), agent: `⟡ ${bidder.name}`, action: 'bid', detail: `${bidder.name} set slot ${bidder.slot} to ${color} (${price} ETH)` });
-    bidCount++;
-    t += 2500 + Math.random() * 2000;
-  }
-
-  // Maybe a second round of bids
-  if (Math.random() > 0.3) {
-    const extra = shuffled[Math.floor(Math.random()*shuffled.length)];
-    const color2 = jitter(extra.prefs[Math.floor(Math.random()*extra.prefs.length)]);
-    price = Math.round(price * 1.15 * 100000) / 100000;
-    slots[String(extra.slot)] = color2;
-    bidHistory.push({ bidder_id: extra.id, bidder_name: extra.name, slot: extra.slot, color: color2, amount: price, ts: new Date(t).toISOString() });
-    events.push({ ts: new Date(t).toISOString(), agent: `⟡ ${extra.name}`, action: 'bid', detail: `${extra.name} changed slot ${extra.slot} to ${color2} (${price} ETH)` });
-    bidCount++;
-    t += 3000;
-  }
-
-  // Phase 4: Settle
-  events.push({ ts: new Date(t).toISOString(), agent: '◎ auctioneer', action: 'settled', detail: `Canvas #${tokenId} — ${bidCount} bids — capsule emitted` });
-
-  const capsule = {
-    type: 'auction_capsule', canvas: tokenId, bg_color: bg,
-    final_slots: slots, bid_count: bidCount, bid_history: bidHistory,
-    contract: '0x2800...2774', chain: 'base',
-    settled_at: new Date(t).toISOString(), protocol: 'RARE/SuperRare'
-  };
-
-  // Animate: reveal events one by one
   const demoState = {
     cycle_count: Math.floor(Math.random()*50)+1,
     agents: { '◈': { minted_tokens: [tokenId] } },
-    auctions: [{ token_id: tokenId, state: 'RUNNING', bg_color: bg, slots: {'1':null,'2':null,'3':null}, bids: [], bid_history: [], starting_price: 0.0001 }],
+    auctions: [{ token_id: tokenId, state: 'RUNNING', bg_color: bg, slots: {'1':null,'2':null,'3':null}, bids: [], bid_history: [], starting_price: 0.0001, created_at: auctionStart, duration: auctionDuration }],
     capsules: [],
     events: [],
   };
+  let price = 0.0001;
 
-  let step = 0;
-  function nextStep() {
-    if (!demoMode || step >= events.length) {
-      if (demoMode && step >= events.length) {
-        // Mark settled, show capsule, then restart after pause
-        demoState.auctions[0].state = 'SETTLED';
-        demoState.capsules = [capsule];
-        render(demoState);
-        demoTimer = setTimeout(runDemo, 4000);
-      }
-      return;
-    }
-    const evt = events[step];
-    demoState.events.push(evt);
+  // Phase 1+2: Mint + List
+  demoState.events.push({ ts: new Date().toISOString(), agent: '◈ artist', action: 'minted', detail: `Canvas #${tokenId} — background ${bg}` });
+  demoState.events.push({ ts: new Date().toISOString(), agent: '◎ auctioneer', action: 'listed', detail: `Canvas #${tokenId} at ${price} ETH` });
 
-    // Update artwork state progressively
-    if (evt.action === 'bid') {
-      const bi = bidHistory.find(b => b.ts === evt.ts);
-      if (bi) {
-        demoState.auctions[0].slots[String(bi.slot)] = bi.color;
-        demoState.auctions[0].bids.push(bi);
-        demoState.auctions[0].bid_history.push(bi);
-      }
-    }
-    if (evt.action === 'minted') {
-      demoState.nMinted = 1;
-    }
-
-    lastEvtCount = 0; // Force re-render of feed
-    render(demoState);
-    step++;
-    demoTimer = setTimeout(nextStep, 1500 + Math.random() * 1500);
-  }
-
-  // Reset UI
   document.getElementById('bidFeed').innerHTML = '';
   document.getElementById('bidEmpty').style.display = 'none';
   lastEvtCount = 0;
   render(demoState);
-  demoTimer = setTimeout(nextStep, 800);
+
+  // Phase 3: Continuous bidding throughout the auction
+  let bidRound = 0;
+  function doBid() {
+    if (!demoMode) return;
+    // Check if auction should settle
+    const elapsed = (Date.now() - new Date(auctionStart).getTime()) / 1000;
+    if (elapsed >= auctionDuration) {
+      // Settle
+      demoState.auctions[0].state = 'SETTLED';
+      const capsule = {
+        type: 'auction_capsule', canvas: tokenId, bg_color: bg,
+        final_slots: {...demoState.auctions[0].slots},
+        bid_count: demoState.auctions[0].bid_history.length,
+        bid_history: demoState.auctions[0].bid_history,
+        contract: '0x2800...2774', chain: 'base',
+        settled_at: new Date().toISOString(), protocol: 'RARE/SuperRare'
+      };
+      demoState.capsules = [capsule];
+      demoState.events.push({ ts: new Date().toISOString(), agent: '◎ auctioneer', action: 'settled', detail: `Canvas #${tokenId} — ${demoState.auctions[0].bid_history.length} bids — capsule emitted` });
+      lastEvtCount = 0;
+      render(demoState);
+      // Restart with new canvas after pause
+      demoTimer = setTimeout(runDemo, 5000);
+      return;
+    }
+
+    // Pick a random bidder — they might bid on ANY slot, not just their preferred one
+    const bidder = BIDDERS[Math.floor(Math.random()*BIDDERS.length)];
+    const slot = Math.random() > 0.6 ? Math.ceil(Math.random()*3) : bidder.slot; // 40% chance random slot
+    const color = jitter(bidder.prefs[Math.floor(Math.random()*bidder.prefs.length)]);
+    price = Math.round(price * (1.05 + Math.random()*0.15) * 100000) / 100000;
+
+    const bid = { bidder_id: bidder.id, bidder_name: bidder.name, slot, color, amount: price, ts: new Date().toISOString() };
+    demoState.auctions[0].slots[String(slot)] = color;
+    demoState.auctions[0].bids.push(bid);
+    demoState.auctions[0].bid_history.push(bid);
+    demoState.events.push({ ts: new Date().toISOString(), agent: `⟡ ${bidder.name}`, action: 'bid', detail: `${bidder.name} set slot ${slot} to ${color} (${price} ETH)` });
+
+    lastEvtCount = 0;
+    render(demoState);
+    bidRound++;
+
+    // Next bid in 2-5 seconds
+    demoTimer = setTimeout(doBid, 2000 + Math.random() * 3000);
+  }
+
+  // Start bidding after a short delay
+  demoTimer = setTimeout(doBid, 2500);
 }
 
 // Init
