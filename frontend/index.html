@@ -330,7 +330,7 @@ function render(state) {
     const feed = document.getElementById('bidFeed');
     const toAdd = lastEvtCount === 0 ? events.slice(-30) : events.slice(lastEvtCount);
     if (toAdd.length) document.getElementById('bidEmpty').style.display = 'none';
-    for (const evt of toAdd.reverse()) {
+    for (const evt of toAdd) {
       const action = (evt.action || '').toLowerCase();
       const detail = evt.detail || '';
       const ts = evt.ts ? new Date(evt.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
