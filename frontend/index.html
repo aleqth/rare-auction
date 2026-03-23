@@ -45,12 +45,12 @@ body { background: #1a1a1a; color: #fff; font-family: 'Inter', -apple-system, sa
 .slot3 { top: 48.3%; }
 
 .slot-labels {
-  display: flex; gap: 16px; margin-top: 16px; font-size: 10px; color: #333;
+  display: flex; gap: 10px; margin-bottom: 12px; font-size: 10px; color: #555; justify-content: center;
 }
-.slot-label { display: flex; align-items: center; gap: 5px; }
-.slot-swatch { width: 10px; height: 10px; border: 1px solid #333; transition: all 1s; }
+.slot-label { display: flex; align-items: center; gap: 4px; background: #1f1f1f; padding: 5px 10px; border-radius: 4px; }
+.slot-swatch { width: 10px; height: 10px; border: 1px solid #333; border-radius: 2px; transition: all 1s; }
 .slot-swatch.set { border-color: transparent; }
-.slot-by { color: #444; font-size: 9px; }
+.slot-by { color: #666; font-size: 9px; font-weight: 500; }
 
 .det-col { overflow: hidden; border-left: 1px solid #252525; display: flex; flex-direction: column; }
 
@@ -130,12 +130,6 @@ body { background: #1a1a1a; color: #fff; font-family: 'Inter', -apple-system, sa
       <div class="slot slot2" id="slot2"></div>
       <div class="slot slot3" id="slot3"></div>
     </div>
-    <div class="slot-labels" id="slotLabels">
-      <div class="slot-label"><div class="slot-swatch" id="sw0"></div><span>BG</span><span class="slot-by" id="by0"></span></div>
-      <div class="slot-label"><div class="slot-swatch" id="sw1"></div><span>1</span><span class="slot-by" id="by1"></span></div>
-      <div class="slot-label"><div class="slot-swatch" id="sw2"></div><span>2</span><span class="slot-by" id="by2"></span></div>
-      <div class="slot-label"><div class="slot-swatch" id="sw3"></div><span>3</span><span class="slot-by" id="by3"></span></div>
-    </div>
   </div>
 
   <div class="det-col">
@@ -177,9 +171,15 @@ body { background: #1a1a1a; color: #fff; font-family: 'Inter', -apple-system, sa
         This artwork is configured for a Reserve auction. Bidders choose colors for each slot. The artwork evolves with every bid until the auction settles.
       </div>
 
+      <div class="slot-labels" id="slotLabels">
+        <div class="slot-label"><div class="slot-swatch" id="sw0"></div><span>BG</span><span class="slot-by" id="by0"></span></div>
+        <div class="slot-label"><div class="slot-swatch" id="sw1"></div><span>1</span><span class="slot-by" id="by1"></span></div>
+        <div class="slot-label"><div class="slot-swatch" id="sw2"></div><span>2</span><span class="slot-by" id="by2"></span></div>
+        <div class="slot-label"><div class="slot-swatch" id="sw3"></div><span>3</span><span class="slot-by" id="by3"></span></div>
+      </div>
+
       <div class="stats" style="padding:0;margin-bottom:0">
         <div class="stat"><span class="n" id="nBids">—</span><span class="l">Bids</span></div>
-        <div class="stat"><span class="n" id="nMinted">—</span><span class="l">Minted</span></div>
         <div class="stat"><span class="n" id="nSettled">—</span><span class="l">Settled</span></div>
       </div>
     </div>
@@ -235,7 +235,6 @@ function render(state) {
   let totalBids = 0;
   auctions.forEach(a => totalBids += (a.bid_history || a.bids || []).length);
 
-  document.getElementById('nMinted').textContent = minted || '—';
   document.getElementById('nBids').textContent = totalBids || '—';
   document.getElementById('nSettled').textContent = settled.length || '—';
   // Timer
