@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-FastAPI server — serves the frontend and exposes state/events API.
-Read-only for state (agents write via run_agents.py).
-"""
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
@@ -26,11 +22,14 @@ async def serve_frontend():
 @app.get("/api/state")
 async def get_state():
     s = state_mod.load()
-    # Redact private keys if any
-    safe_agents = {}
-    for sigil, agent in s.get("agents", {}).items():
-        safe_agents[sigil] = {k: v for k, v in agent.items() if k != "private_key"}
+    safe_agents = {sig: {k: v for k, v in a.items() if k != "private_key"} for sig, a in s.get("agents", {}).items()}
     return JSONResponse({**s, "agents": safe_agents})
+
+
+@app.get("/api/artwork")
+async def get_artwork():
+    s = state_mod.load()
+    return JSONResponse(state_mod.get_current_artwork(s))
 
 
 @app.get("/api/events")
@@ -45,22 +44,10 @@ async def get_auctions():
     return JSONResponse(s.get("auctions", []))
 
 
-@app.get("/api/auctions/active")
-async def get_active_auctions():
-    s = state_mod.load()
-    return JSONResponse(state_mod.get_active_auctions(s))
-
-
 @app.get("/api/capsules")
 async def get_capsules():
     s = state_mod.load()
     return JSONResponse(s.get("capsules", []))
-
-
-@app.get("/api/cycle")
-async def get_cycle():
-    s = state_mod.load()
-    return JSONResponse({"cycle": s.get("cycle_count", 0)})
 
 
 if __name__ == "__main__":

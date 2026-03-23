@@ -1,38 +1,35 @@
+import random
 from pathlib import Path
 from agents.base import Agent
 import artwork
 import rare_cli
-from config import CHAIN, EMOTION_SYMBOLS
+from config import CHAIN, CANVAS_BG_COLORS
+from state import get_active_auctions
 
 
 class ArtistAgent(Agent):
     role = "artist"
 
     def tick(self, state: dict) -> dict:
-        traits = artwork.pick_traits()
-        emotion = traits["emotion"]
-        palette = traits["palette_name"]
-        palette_hex = traits["palette_hex"]
-        seed = traits["seed"]
+        # Only mint if no active auction — one canvas at a time
+        if get_active_auctions(state):
+            return state
 
-        self.log(state, "creating", f"emotion={emotion} palette={palette} seed={seed}")
+        bg_color = random.choice(CANVAS_BG_COLORS)
+        self.log(state, "creating", f"canvas with background {bg_color}")
 
-        image_path = artwork.generate(emotion, palette_hex, seed)
+        image_path = artwork.generate_canvas(bg_color)
 
         agent_state = state["agents"].get(self.sigil, {})
         contract = agent_state.get("contract", self.contract)
         token_num = agent_state.get("next_token_id", 1)
-        token_name = f"{self.sigil} {self.name} #{token_num:03d}"
-        description = f"Autonomous agent artwork. Emotion: {emotion} {EMOTION_SYMBOLS[emotion]}. Palette: {palette}."
+        token_name = f"Canvas #{token_num:03d}"
+        description = f"Blank canvas. Background: {bg_color}. Slots shaped by bidders."
 
         attributes = [
-            ("Emotion", emotion),
-            ("EmotionSymbol", EMOTION_SYMBOLS[emotion]),
-            ("Palette", palette_hex),
-            ("PaletteName", palette),
-            ("Agent", self.name),
-            ("Sigil", self.sigil),
-            ("Seed", str(seed)),
+            ("Background", bg_color),
+            ("Slots", "3"),
+            ("Agent", "artist"),
         ]
 
         result = rare_cli.mint(contract, token_name, description, image_path, CHAIN, attributes)
@@ -52,13 +49,11 @@ class ArtistAgent(Agent):
                 "sigil": self.sigil,
                 "contract": contract,
                 "token_id": token_id,
-                "emotion": emotion,
-                "palette": palette,
-                "palette_hex": palette_hex,
-                "seed": seed,
+                "bg_color": bg_color,
+                "slots": {"1": None, "2": None, "3": None},
             })
 
-            self.log(state, "minted", f"token #{token_id} — {emotion} {EMOTION_SYMBOLS[emotion]} / {palette}")
+            self.log(state, "minted", f"Canvas #{token_id} — background {bg_color}")
         else:
             self.log(state, "mint_failed", result["error"][:200])
 
